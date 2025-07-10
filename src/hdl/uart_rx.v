@@ -111,7 +111,7 @@ module (
             clks_cnt          <= 0;
             r_i_rx_serial_r   <= 1'b1;
             r_i_rx_serial_dat <= 1'b1;
-            o_rx_d            <= 1'b0;
+            r_rx_d            <= 1'b0;
         end
     end
 
