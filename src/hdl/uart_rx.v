@@ -24,17 +24,98 @@
 
 
 module (
-    input  wire                  sysclk,
-    input  wire                  i_rx,        // receive mode active signal (set high active)
-    input  wire                  i_rx_serial, // serial data
-    output reg                   o_rx_d,      // flag indicating that entire byte of data was received
-    output reg [`DATA_WIDTH-1:0] o_rx_byte    // received data
+    input  wire                   sysclk,
+    input  wire                   i_rx,        // receive mode active signal (set high active)
+    input  wire                   i_rx_serial, // serial data
+    output wire                   o_rx_d,      // flag indicating that entire byte of data was received
+    output wire [`DATA_WIDTH-1:0] o_rx_byte    // received data
 );
 
+    reg r_rx_d; // internal value for o_rx_d
+
     // Receiver FSM states
-    parameter IDLE     = 2'b00;
-    parameter START_RX = 2'b01;
-    parameter RX_ON    = 2'b10;
-    parameter STOP_RX  = 2'b11;
+    parameter IDLE     = 3'b000;
+    parameter START_RX = 3'b001;
+    parameter RX_ON    = 3'b010;
+    parameter STOP_RX  = 3'b100;
+    parameter DATA_OK  = 3'b111;
+
+    reg [2:0] current_state;
+
+    reg [`DATA_WIDTH-1:0] rx_byte;      // internal storage of received data
+    reg [2:0]             rx_bit_index; // used for counting received bits
+    reg [11:0]            clks_cnt;     // used to count clock cycles before bit check is done
+
+    // Double flip-flop to mitigate metastability
+    reg r_i_rx_serial_r;
+    reg r_i_rx_serial_dat;
+    always @(posedge sysclk) begin
+        r_i_rx_serial_r   <= i_rx_serial;
+        r_i_rx_serial_dat <= r_i_rx_serial_r;
+    end
+
+    always @(posedge sysclk) begin
+        if (i_rx) begin
+            case (current_state)
+                IDLE    : begin
+                    rx_bit_index  <= 0;
+                    clks_cnt      <= 0;
+                    current_state <= (r_i_rx_serial_dat == `START_BIT) ? START_RX : IDLE;
+                end
+                START_RX: begin
+                    if (clks_cnt == ((`CLKS_PER_BIT - 1) / 2)) begin
+                        clks_cnt      <= 0;
+                        current_state <= (r_i_rx_serial_dat == `START_BIT) ? RX_ON : IDLE;
+                    end else begin
+                        clks_cnt      <= clks_cnt + 1;
+                    end
+                end
+                RX_ON   : begin
+                    if (clks_cnt < (`CLKS_PER_BIT - 1)) begin
+                        clks_cnt                  <= clks_cnt + 1;
+                        current_state             <= RX_ON;
+                    end else begin
+                        clks_cnt                  <= 0;
+                        if (rx_bit_index < `DATA_WIDTH) begin
+                            rx_byte[rx_bit_index] <= r_i_rx_serial_dat;
+                            rx_bit_index          <= rx_bit_index + 1;
+                            current_state         <= RX_ON;
+                        end else begin
+                            rx_bit_index          <= 0;
+                            current_state         <= STOP_RX;
+                        end
+                    end
+                end
+                STOP_RX : begin
+                    if (clks_cnt < (`CLKS_PER_BIT - 1)) begin
+                        clks_cnt      <= clks_cnt + 1;
+                        current_state <= STOP_RX;
+                    end else begin
+                        clks_cnt      <= 0;
+                        r_rx_d        <= (r_i_rx_serial_dat == `STOP_BIT) ? 1'b1 : 1'b0;
+                        current_state <= (r_i_rx_serial_dat == `STOP_BIT) ? DATA_OK : IDLE;
+                    end
+                end
+                DATA_OK : begin
+                    current_state <= IDLE;
+                    r_rx_d        <= 1'b0;
+                end
+                default : current_state <= IDLE;
+            endcase
+
+        end else begin
+            // waiting for receiver mode to be activated, even if valid data is being streamed
+            current_state     <= IDLE;
+            rx_byte           <= {DATA_WIDTH{1'b0}};
+            rx_bit_index      <= 0;
+            clks_cnt          <= 0;
+            r_i_rx_serial_r   <= 1'b1;
+            r_i_rx_serial_dat <= 1'b1;
+            o_rx_d            <= 1'b0;
+        end
+    end
+
+    assign o_rx_d    = r_rx_d;
+    assign o_rx_byte = rx_byte;
 
 endmodule
