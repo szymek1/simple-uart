@@ -20,10 +20,11 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+`timescale 1ns/1ps
 `include include/uart_params.vh
 
 
-module (
+module uart_rx(
     input  wire                   sysclk,
     input  wire                   i_rx,        // receive mode active signal (set high active)
     input  wire                   i_rx_serial, // serial data
