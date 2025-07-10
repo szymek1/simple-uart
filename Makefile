@@ -42,7 +42,7 @@ SIMULATE_TCL  := $(SCRIPTS_DIR)/simulate.tcl
 PROGRAM_TCL     := $(SCRIPTS_DIR)/program_board.tcl
 
 # Project's details
-project_name    := blinking_led
+project_name    := simple_uart
 language 	    := verilog
 device 		    := xc7z020clg400-1
 
