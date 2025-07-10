@@ -21,7 +21,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/1ps
-`include include/uart_params.vh
+`include "../include/uart_params.vh"
 
 
 module uart_rx(
@@ -61,6 +61,7 @@ module uart_rx(
                 IDLE    : begin
                     rx_bit_index  <= 0;
                     clks_cnt      <= 0;
+                    r_rx_d        <= 1'b0;
                     current_state <= (r_i_rx_serial_dat == `START_BIT) ? START_RX : IDLE;
                 end
                 START_RX: begin
@@ -99,7 +100,7 @@ module uart_rx(
                 end
                 DATA_OK : begin
                     current_state <= IDLE;
-                    r_rx_d        <= 1'b0;
+                    // r_rx_d        <= 1'b0; // reset for new idle state TODO: it is always zero somehow !!!
                 end
                 default : current_state <= IDLE;
             endcase
@@ -107,7 +108,7 @@ module uart_rx(
         end else begin
             // waiting for receiver mode to be activated, even if valid data is being streamed
             current_state     <= IDLE;
-            rx_byte           <= {DATA_WIDTH{1'b0}};
+            rx_byte           <= {`DATA_WIDTH{1'b0}};
             rx_bit_index      <= 0;
             clks_cnt          <= 0;
             r_i_rx_serial_r   <= 1'b1;
