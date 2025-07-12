@@ -39,20 +39,57 @@
 module uart_top(
     // Inputs:
     // general
-    input wire       sysclk,
-    input wire [3:2] btn,    // BTN3: receiver on/off, BTN2: transmitter on/off
+    input wire        sysclk,
+    input wire [3:2]  btn,    // BTN3: receiver on/off, BTN2: transmitter on/off
     // transmitter
-    input wire [3:0] sw,     // toggle switches to speicfy message (4 lowest bits)
+    input wire [3:0]  sw,     // toggle switches to speicfy message (4 lowest bits)
 
     // Outputs:
     // transmitter
-    output reg [3:0] led,    // when a switch is toggled led lights up
-    output reg       led5_r, // transmitter off
-    output reg       led5_g, // transmitter on
-    output reg       led5_b, // transmitter done
+    output reg [3:0]  led,    // when a switch is toggled led lights up
+    output wire       led5_r, // transmitter off
+    output wire       led5_g, // transmitter on
+    output wire       led5_b, // transmitter done
     // receiver
-    output reg       led6_r, // receiver off
-    output reg       led6_g, // receiver on
-    output reg       led6_b, // receiver done
+    output wire       led6_r, // receiver off
+    output wire       led6_g, // receiver on
+    output wire       led6_b, // receiver done
 );
+
+    parameter i_TX_BTN = 2;
+    parameter i_RX_BTN = 3;
+
+    // Receiver
+    // keeps output of BTN3 in a flip-flop
+    reg       r_btn3     = 1'b0; 
+    reg       r_rx_press = 1'b0;
+    reg       rx_on      = 1'b0;  // controlled by btn2
+
+    // Transmitter
+    // keeps output of BTN3 in a flip-flop
+    reg       r_btn2     = 1'b0; 
+    reg       r_tx_press = 1'b0;
+    reg       tx_on      = 1'b0;  // controlled by btn3
+
+    always @(posedge sysclk) begin
+        // Checking for receiver button click
+        r_btn3 <= btn[3];
+        r_rx_press <= r_btn3
+        rx_on <= (r_rx_press == 1'b1) ? ~rx_on;
+
+        // Checking for transmitter button click
+        r_btn2 <= btn[2];
+        r_tx_press <= r_btn2
+        tx_on <= (r_tx_press == 1'b1) ? ~tx_on;
+    end
+    
+    // Transmitter indicators
+    assign led5_g = (tx_on == 1'b1) ? 1'b1 : 1'b0; // transmission on
+    assign led5_r = (tx_on == 1'b0) ? 1'b1 : 1'b0; // transmission off
+    assign led5_b = 1'b0; // data transmitted
+
+    // Receiver indicators
+    assign led6_g = (rx_on == 1'b1) ? 1'b1 : 1'b0; // receiver on
+    assign led6_r = (rx_on == 1'b0) ? 1'b1 : 1'b0; // receiver off
+    assign led6_b = 1'b0; // data received
 endmodule
