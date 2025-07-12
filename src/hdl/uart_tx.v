@@ -59,8 +59,8 @@ module uart_tx(
                     current_state <= START_TX;
                 end
                 START_TX: begin
+                    tx_bit            <= `START_BIT;
                     if (clks_cnt < (`CLKS_PER_BIT - 1)) begin
-                        tx_bit        <= `START_BIT;
                         current_state <= START_TX;
                         clks_cnt      <= clks_cnt + 1;
                     end else begin
@@ -69,9 +69,9 @@ module uart_tx(
                     end
                 end
                 TX_ON   : begin
+                    tx_bit               <= r_tx_byte[tx_bit_index];
                     if (tx_bit_index < (`DATA_WIDTH - 1)) begin
                         if (clks_cnt < (`CLKS_PER_BIT - 1)) begin
-                            tx_bit       <= r_tx_byte[tx_bit_index];
                             clks_cnt     <= clks_cnt + 1;
                         end else begin
                             tx_bit_index <= tx_bit_index + 1;
@@ -85,8 +85,8 @@ module uart_tx(
                     end
                 end
                 STOP_TX : begin
-                    if (clks_cnt < (`CLKS_PER_BIT - 1)) begin
-                        tx_bit        <= `STOP_BIT;
+                    tx_bit            <= `STOP_BIT;
+                    if (clks_cnt < (`CLKS_PER_BIT - 1)) begin      
                         clks_cnt      <= clks_cnt + 1;
                         current_state <= STOP_TX;
                     end else begin
