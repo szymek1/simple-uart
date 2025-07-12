@@ -29,7 +29,7 @@ module uart_tx(
     input wire                   i_tx,        // transmitter signal active (set high active)
     input wire [`DATA_WIDTH-1:0] i_tx_byte,   // byte to transmitt
     output wire                  o_tx_serial, // serialized transmitted bit
-    output wire                  o_tx_d,      // flag indicating that an entire byte of data has been sent
+    output wire                  o_tx_d       // flag indicating that an entire byte of data has been sent
 );
 
     // Transmitter FSM states
@@ -72,6 +72,7 @@ module uart_tx(
                     if (tx_bit_index < (`DATA_WIDTH - 1)) begin
                         if (clks_cnt < (`CLKS_PER_BIT - 1)) begin
                             tx_bit       <= r_tx_byte[tx_bit_index];
+                            clks_cnt     <= clks_cnt + 1;
                         end else begin
                             tx_bit_index <= tx_bit_index + 1;
                             clks_cnt     <= 0;
@@ -90,16 +91,13 @@ module uart_tx(
                         current_state <= STOP_TX;
                     end else begin
                         clks_cnt      <= 0;
+                        r_tx_d        <= 1'b1;
                         current_state <= DATA_OK;
                     end
                 end
                 DATA_OK : begin
-                    if (clks_cnt < (`CLKS_PER_BIT - 1)) begin
-                        r_tx_d        <= 1'b1;
-                        current_state <= DATA_OK;
-                    end else begin
-                        current_state <= IDLE;
-                    end
+                    r_tx_d        <= 1'b0;
+                    current_state <= IDLE;
                 end
                 default : current_state <= IDLE;
             endcase
