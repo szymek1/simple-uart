@@ -18,6 +18,7 @@ set netlist_dir     [lindex $argv 3]
 set bitstream_dir   [lindex $argv 4]
 set device          [lindex $argv 5]
 set project_name    [lindex $argv 6]
+set top_mod_name    [lindex $argv 7]
 
 # Collect HDL sources
 if {$language eq "verilog"} {
@@ -61,7 +62,7 @@ foreach file $constraints_files {
 }
 
 # Run synthesis and implementation
-synth_design -top top -part $device
+synth_design -top $top_mod_name -part $device
 opt_design
 place_design
 route_design
@@ -70,7 +71,7 @@ route_design
 file mkdir $bitstream_dir
 file mkdir $netlist_dir
 
-write_bitstream -force "$bitstream_dir/blinking_led.bit"
-write_edif -force "$netlist_dir/blinking_led.edif"
+write_bitstream -force "$bitstream_dir/$project_name.bit"
+write_edif -force "$netlist_dir/$project_name.edif"
 
-puts "Bitstream generated at $bitstream_dir/blinking_led.bit"
+puts "Bitstream generated at $bitstream_dir/$project_name.bit"
