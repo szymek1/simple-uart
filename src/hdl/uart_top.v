@@ -53,7 +53,7 @@ module uart_top(
     // receiver
     output wire       led6_r, // receiver off
     output wire       led6_g, // receiver on
-    output wire       led6_b, // receiver done
+    output wire       led6_b  // receiver done
 );
 
     parameter i_TX_BTN = 2;
@@ -73,14 +73,14 @@ module uart_top(
 
     always @(posedge sysclk) begin
         // Checking for receiver button click
-        r_btn3 <= btn[3];
-        r_rx_press <= r_btn3
-        rx_on <= (r_rx_press == 1'b1) ? ~rx_on;
+        r_btn3 <= btn[i_RX_BTN];
+        r_rx_press <= r_btn3;
+        rx_on <= (r_rx_press == 1'b1) ? ~rx_on : rx_on;
 
         // Checking for transmitter button click
-        r_btn2 <= btn[2];
-        r_tx_press <= r_btn2
-        tx_on <= (r_tx_press == 1'b1) ? ~tx_on;
+        r_btn2 <= btn[i_TX_BTN];
+        r_tx_press <= r_btn2;
+        tx_on <= (r_tx_press == 1'b1) ? ~tx_on : tx_on;
     end
     
     // Transmitter indicators
