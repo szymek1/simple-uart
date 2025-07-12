@@ -84,14 +84,15 @@ module uart_tx_tb (
         end
 
         // Test 2: serializing valid data
-        i_rx = 1'b1;
+        i_tx = 1'b1;
         // #(10 * `CLK_PERIOD_NS);
-        #(`CLK_PERIOD_NS); // transmitter issues start bit
+        #(3 * `CLK_PERIOD_NS); // transmitter issues start bit
         if (o_tx_serial == `START_BIT) begin
             $display("Test 2.1: PASS");
         end else begin
             $display("Test 2.2: FAIL- o_tx_serial=%b, expected %b", o_tx_serial, `START_BIT);
         end
+        #(`CLKS_PER_BIT * `CLK_PERIOD_NS);
         for (i = 0; i < `DATA_WIDTH; i = i + 1) begin
             // Waiting for all bits to be transmitted
             display_results();

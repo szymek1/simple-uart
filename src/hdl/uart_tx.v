@@ -91,7 +91,7 @@ module uart_tx(
                         current_state <= STOP_TX;
                     end else begin
                         clks_cnt      <= 0;
-                        r_tx_d        <= 1'b1;
+                        r_tx_d        <= 1'b1; // TODO: this still doesn't fire
                         current_state <= DATA_OK;
                     end
                 end
