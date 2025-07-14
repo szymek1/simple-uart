@@ -101,7 +101,7 @@ module uart_top_tb (
 
         // Test 1: Initial conditions- both off
         i_btn = NONE;
-        #(4 * `CLK_PERIOD_NS);
+        #(2.1 * `CLK_PERIOD_NS);
         if ((led5_r == 1'b1 && led5_g == 1'b0 && led5_b == 1'b0)) begin 
             $display("Test 1.1: PASS transmitter off");
         end else begin
@@ -116,7 +116,7 @@ module uart_top_tb (
 
         // Test 2: receiver on
         i_btn = RX;
-        #(4 * `CLK_PERIOD_NS);
+        #(2.1 * `CLK_PERIOD_NS);
         if ((led5_r == 1'b1 && led5_g == 1'b0 && led5_b == 1'b0)) begin 
             $display("Test 2.1: PASS transmitter off");
         end else begin
@@ -131,7 +131,7 @@ module uart_top_tb (
 
         // Test 3: transmitter on
         i_btn = TX;
-        #(4 * `CLK_PERIOD_NS);
+        #(2.1 * `CLK_PERIOD_NS);
         if ((led5_r == 1'b0 && led5_g == 1'b1 && led5_b == 1'b0)) begin 
             $display("Test 2.1: PASS transmitter on");
         end else begin
