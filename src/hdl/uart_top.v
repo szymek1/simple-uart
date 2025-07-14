@@ -35,7 +35,7 @@
 `timescale 1ns/1ps
 `include "../include/uart_params.vh"
 
-// TODO: how to use Pmod Header JC  for both uart_rx_serial, uart_tx_serial ???
+
 module uart_top(
     // Inputs:
     // general
@@ -63,50 +63,62 @@ module uart_top(
     parameter              i_RX_BTN = 3;
 
     // Receiver
-    // keeps output of BTN3 in a flip-flop
-    reg                    r_btn3     = 1'b0; 
-    reg                    r_rx_press = 1'b0;
-    reg                    r_rx_data  = 1'b0;
-    reg                    rx_on      = 1'b0;  // controlled by btn2
+    reg  [1:0]             btn3_sync  = 2'b00;                         // 2-FF synchornizer
+    wire                   btn3_rise =  btn3_sync[0] & ~btn3_sync[1]; // 1-clk pulse on 0->1
+    reg                    rx_on      = 1'b0;                          // controlled by btn2
+    reg                    r_rx_d     = 1'b0;
 
     // Transmitter
-    // keeps output of BTN3 in a flip-flop
-    reg                    r_btn2     = 1'b0; 
-    reg                    r_tx_press = 1'b0;
-    reg                    r_tx_data  = 1'b0;
-    reg                    tx_on      = 1'b0;  // controlled by btn3
+    reg  [1:0]             btn2_sync  = 2'b00;                         // 2-FF synchornizer
+    wire                   btn2_rise =  btn2_sync[0] & ~btn2_sync[1]; // 1-clk pulse on 0->1
+    reg                    tx_on      = 1'b0;                         // controlled by btn3
+    reg                    r_tx_d     = 1'b0;
+    wire [`DATA_WIDTH-1:0] i_tx_byte  = {4'b0, sw[3], sw[2], sw[1], sw[0]};
 
-    wire [`DATA_WIDTH-1:0] i_tx_byte = {4'b0, sw[3], sw[2], sw[1], sw[0]};
-
-    reg                    r_tx_d = 1'b0;
-    /* // TODO: use PMOD pins for communication
+    // UART Transmitter module
+    /*
     uart_tx uut (
-        .sysclk(clk),
+        .sysclk(sysclk),
         .i_tx(tx_on),
         .i_tx_byte(i_tx_byte),
-        .o_tx_serial(uart_tx_serial), 
+        .o_tx_serial(uart_tx_serial), // goes straight to JE-1
         .o_tx_d(r_tx_d)
     );
+
+    // UART Receiver module
+    uart_rx u_rx (
+    .sysclk      (sysclk),
+    .i_rx        (rx_on),
+    .i_rx_serial (uart_rx_serial),    // comes from JE-2
+    .o_rx_d      (r_rx_d),
+    .o_rx_byte   (rx_byte)
+    );
     */
+    
+    
 
     always @(posedge sysclk) begin
         // Checking for receiver button click
-        r_btn3     <= btn[i_RX_BTN];
-        r_rx_press <= r_btn3;
-        r_rx_data  <= r_rx_press;
-        rx_on      <= (r_rx_data == 1'b1) ? ~rx_on : rx_on;
+        btn3_sync <= {btn3_sync[0], btn[i_RX_BTN]};
+        if (btn3_rise) begin
+            rx_on <= ~rx_on;
+        end else begin
+            rx_on <= rx_on;
+        end
 
         // Checking for transmitter button click
-        r_btn2     <= btn[i_TX_BTN];
-        r_tx_press <= r_btn2;
-        r_tx_data  <= r_tx_press;
-        tx_on      <= (r_tx_data == 1'b1) ? ~tx_on : tx_on;
+        btn2_sync <= {btn2_sync[0], btn[i_TX_BTN]};
+        if (btn2_rise) begin
+            tx_on <= ~tx_on;
+        end else begin
+            tx_on <= tx_on;
+        end
     end
     
     // Transmitter indicators
     assign led5_g = (tx_on  == 1'b1) ? 1'b1 : 1'b0; // transmission on
     assign led5_r = (tx_on  == 1'b0) ? 1'b1 : 1'b0; // transmission off
-    assign led5_b = (r_tx_d == 1'b1) ? 1'b1 : 1'b0; // data transmitted
+    assign led5_b = (r_tx_d == 1'b1);               // data transmitted
 
     // Transmitter input indicators
     assign led[0] = sw[0];
@@ -117,6 +129,6 @@ module uart_top(
     // Receiver indicators
     assign led6_g = (rx_on  == 1'b1) ? 1'b1 : 1'b0; // receiver on
     assign led6_r = (rx_on  == 1'b0) ? 1'b1 : 1'b0; // receiver off
-    assign led6_b = 1'b0; // data received
+    assign led6_b = (r_rx_d == 1'b1);               // data received
 
 endmodule
