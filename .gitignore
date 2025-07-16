@@ -15,6 +15,9 @@
 bin/
 log/
 simulation/
+src/uart_host_pc/lib/
+src/uart_host_pc/lib64
+src/uart_host_pc/include/
 
 # for Xilinx Vivado|ISE
 .Xil/
@@ -78,3 +81,7 @@ unisims
 
 # some data specific files
 *.coe
+
+# venv
+*.cfg
+lib64

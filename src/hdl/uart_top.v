@@ -41,13 +41,13 @@ module uart_top(
     // general
     input wire        sysclk,
     input wire [3:2]  btn,             // BTN3: receiver on/off, BTN2: transmitter on/off
-    // input wire        uart_rx_serial,  // serial input
+    input wire        uart_rx_serial,  // serial input
     // transmitter
     input wire [3:0]  sw,              // toggle switches to speicfy message (4 lowest bits)
 
     // Outputs:
     // general
-    // output wire        uart_tx_serial, // serial output
+    output wire        uart_tx_serial, // serial output
     // transmitter
     output wire [3:0] led,            // when a switch is toggled led lights up
     output wire       led5_r,         // transmitter off
@@ -64,25 +64,24 @@ module uart_top(
 
     // Receiver
     reg  [1:0]             btn3_sync  = 2'b00;                         // 2-FF synchornizer
-    wire                   btn3_rise =  btn3_sync[0] & ~btn3_sync[1]; // 1-clk pulse on 0->1
+    wire                   btn3_rise =  btn3_sync[0] & ~btn3_sync[1];  // 1-clk pulse on 0->1
     reg                    rx_on      = 1'b0;                          // controlled by btn2
     reg                    r_rx_d     = 1'b0;
 
     // Transmitter
     reg  [1:0]             btn2_sync  = 2'b00;                         // 2-FF synchornizer
-    wire                   btn2_rise =  btn2_sync[0] & ~btn2_sync[1]; // 1-clk pulse on 0->1
+    wire                   btn2_rise =  btn2_sync[0] & ~btn2_sync[1];  // 1-clk pulse on 0->1
     reg                    tx_on      = 1'b0;                         // controlled by btn3
     reg                    r_tx_d     = 1'b0;
     wire [`DATA_WIDTH-1:0] i_tx_byte  = {4'b0, sw[3], sw[2], sw[1], sw[0]};
 
     // UART Transmitter module
-    /*
     uart_tx uut (
         .sysclk(sysclk),
         .i_tx(tx_on),
         .i_tx_byte(i_tx_byte),
         .o_tx_serial(uart_tx_serial), // goes straight to JE-1
-        .o_tx_d(r_tx_d)
+        .o_tx_d()
     );
 
     // UART Receiver module
@@ -90,12 +89,9 @@ module uart_top(
     .sysclk      (sysclk),
     .i_rx        (rx_on),
     .i_rx_serial (uart_rx_serial),    // comes from JE-2
-    .o_rx_d      (r_rx_d),
+    .o_rx_d      (),
     .o_rx_byte   (rx_byte)
     );
-    */
-    
-    
 
     always @(posedge sysclk) begin
         // Checking for receiver button click
