@@ -59,3 +59,6 @@ Results will be stored inside ```simulation/waveforms``` directory that will be 
 
 ## Testing
 Inside ```src/uart_host_pc/``` there are Python utilities to send and receive data back and forth to and from FPGA.
+
+## Closing
+If you enjoy this project's structure and build system please check my other [project](https://github.com/szymek1/FPGA-TCL-Makefile-template).
