@@ -71,7 +71,7 @@ module uart_top_tb (
 
     task display_results;
         begin
-            $display("Time=%0t | btn3=%b | btn2=%b | led5_r=%b | led5_g=%b | led5_b=%b\n | led6_r=%b | led6_g=%b | led6_b=%b\n | rx_serial=%b | tx_serial=%b",
+            $display("Time=%0t | btn3=%b | btn2=%b | led5_r=%b | led5_g=%b | led5_b=%b\n | led6_r=%b | led6_g=%b | led6_b=%b",
                      $time,
                      i_btn[1],
                      i_btn[0],
@@ -80,9 +80,7 @@ module uart_top_tb (
                      led5_b,
                      led6_r,
                      led6_g,
-                     led6_b,
-                     uart_rx_serial,
-                     uart_tx_serial);
+                     led6_b);
         end
     endtask
 
@@ -95,9 +93,9 @@ module uart_top_tb (
     parameter NONE = 2'b00;
     parameter RX   = 2'b10;
     parameter TX   = 2'b01;
-    parameter BOTH = 2'b11;
 
     integer i;
+    reg [`DATA_WIDTH-1:0] test_data;
     initial begin
         $dumpfile("uart_top_tb_waveforms.vcd"); // Add waveform dumping
         $dumpvars(0, uart_top_tb.clk, 
@@ -157,16 +155,42 @@ module uart_top_tb (
         end
 
         // Test 4: transmitter on, receiver on
-        i_btn = BOTH;
-        sw    = 4'b1011; // transmitter should send: 00001011
-        #(3 * `CLK_PERIOD_NS);
-        display_results();
+        i_btn     = TX;
+        sw        = 4'b1011; // transmitter should send: 00001011
+        test_data = {4'b0, sw};
         #(`CLKS_PER_BIT * `CLK_PERIOD_NS);
+        uart_rx_serial = uart_tx_serial;
+        if (uart_tx_serial == `START_BIT) begin
+            $display("Test 4.1: PASS");
+        end else begin
+            $display("Test 4.1: FAIL- got: %b, expected 0", uart_tx_serial);
+        end
+        $display("Test 4.2:...");
         for (i = 0; i < `DATA_WIDTH; i = i + 1) begin
             // Waiting for all bits to be transmitted
-            display_results();
             #(`CLKS_PER_BIT * `CLK_PERIOD_NS);
+            uart_rx_serial = uart_tx_serial;
+            if (uart_tx_serial == test_data[i]) begin
+                $display("Bit %d sent correctly, got: %b", i, uart_tx_serial);
+            end else begin
+                $display("Bit %d incorrect value: got: %b expected: %b", i, uart_tx_serial, test_data[i]);
+            end
         end
+        #(`CLK_PERIOD_NS);
+        display_results();
+        #(`CLKS_PER_BIT * `CLK_PERIOD_NS);
+        uart_rx_serial = uart_tx_serial;
+        if (uart_tx_serial == `STOP_BIT) begin
+            $display("Test 4.3: PASS");
+        end else begin
+            $display("Test 4.3: FAIL- got: %b, expected 1", uart_tx_serial);
+        end
+        if (uut.rx_byte == test_data) begin
+            $display("Test 4.4: PASS- receiver module received correct data");
+        end else begin
+            $display("Test 4.4: FAIL- got: %b, expected %b", uut.rx_byte, test_data);
+        end
+        display_results;
 
         #(5 * `CLK_PERIOD_NS);
         $finish;

@@ -70,7 +70,7 @@ module uart_tx(
                 end
                 TX_ON   : begin
                     tx_bit               <= r_tx_byte[tx_bit_index];
-                    if (tx_bit_index < (`DATA_WIDTH - 1)) begin
+                    if (tx_bit_index < `DATA_WIDTH) begin
                         if (clks_cnt < (`CLKS_PER_BIT - 1)) begin
                             clks_cnt     <= clks_cnt + 1;
                         end else begin

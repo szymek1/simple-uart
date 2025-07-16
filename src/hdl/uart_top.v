@@ -66,22 +66,23 @@ module uart_top(
     reg  [1:0]             btn3_sync  = 2'b00;                         // 2-FF synchornizer
     wire                   btn3_rise =  btn3_sync[0] & ~btn3_sync[1];  // 1-clk pulse on 0->1
     reg                    rx_on      = 1'b0;                          // controlled by btn2
-    reg                    r_rx_d     = 1'b0;
+    wire                   r_rx_d;
+    wire [`DATA_WIDTH-1:0] rx_byte;
 
     // Transmitter
     reg  [1:0]             btn2_sync  = 2'b00;                         // 2-FF synchornizer
     wire                   btn2_rise =  btn2_sync[0] & ~btn2_sync[1];  // 1-clk pulse on 0->1
     reg                    tx_on      = 1'b0;                         // controlled by btn3
-    reg                    r_tx_d     = 1'b0;
+    wire                   r_tx_d;
     wire [`DATA_WIDTH-1:0] i_tx_byte  = {4'b0, sw[3], sw[2], sw[1], sw[0]};
 
     // UART Transmitter module
-    uart_tx uut (
+    uart_tx u_tx (
         .sysclk(sysclk),
         .i_tx(tx_on),
         .i_tx_byte(i_tx_byte),
         .o_tx_serial(uart_tx_serial), // goes straight to JE-1
-        .o_tx_d()
+        .o_tx_d(r_tx_d)
     );
 
     // UART Receiver module
@@ -89,7 +90,7 @@ module uart_top(
     .sysclk      (sysclk),
     .i_rx        (rx_on),
     .i_rx_serial (uart_rx_serial),    // comes from JE-2
-    .o_rx_d      (),
+    .o_rx_d      (r_rx_d),
     .o_rx_byte   (rx_byte)
     );
 
@@ -114,7 +115,7 @@ module uart_top(
     // Transmitter indicators
     assign led5_g = (tx_on  == 1'b1) ? 1'b1 : 1'b0; // transmission on
     assign led5_r = (tx_on  == 1'b0) ? 1'b1 : 1'b0; // transmission off
-    assign led5_b = (r_tx_d == 1'b1);               // data transmitted
+    assign led5_b = r_tx_d;                         // data transmitted
 
     // Transmitter input indicators
     assign led[0] = sw[0];
@@ -125,6 +126,6 @@ module uart_top(
     // Receiver indicators
     assign led6_g = (rx_on  == 1'b1) ? 1'b1 : 1'b0; // receiver on
     assign led6_r = (rx_on  == 1'b0) ? 1'b1 : 1'b0; // receiver off
-    assign led6_b = (r_rx_d == 1'b1);               // data received
+    assign led6_b = r_rx_d;                         // data received
 
 endmodule
