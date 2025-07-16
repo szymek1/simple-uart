@@ -43,6 +43,7 @@ PROGRAM_TCL     := $(SCRIPTS_DIR)/program_board.tcl
 
 # Project's details
 project_name    := simple_uart
+top_module	    := uart_top
 language 	    := verilog
 device 		    := xc7z020clg400-1
 
@@ -80,7 +81,7 @@ sim_sel: conf
 bit: conf
 	@echo "Building bitstream..."
 	@$(VIVADO_CMD) -source $(BUILD_TCL) \
-		-tclargs $(language) $(HDL_DIR) $(CONSTRAINTS_DIR) $(NETLIST_DIR) $(BITSTREAM_DIR) $(device) $(project_name) \
+		-tclargs $(language) $(HDL_DIR) $(CONSTRAINTS_DIR) $(NETLIST_DIR) $(BITSTREAM_DIR) $(device) $(project_name) $(top_module) \
 		> $(LOG_DIR)/build.log 2>&1
 	@rm -rf *.backup.* vivado.jou
 	@echo "Build completed for $(project_name). Logs stored at $(LOG_DIR)/build.log"

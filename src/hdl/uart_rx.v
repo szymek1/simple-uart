@@ -94,13 +94,14 @@ module uart_rx(
                         current_state <= STOP_RX;
                     end else begin
                         clks_cnt      <= 0;
-                        r_rx_d        <= (r_i_rx_serial_dat == `STOP_BIT) ? 1'b1 : 1'b0;
+                        // r_rx_d        <= (r_i_rx_serial_dat == `STOP_BIT) ? 1'b1 : 1'b0;
+                        r_rx_d        <= 1'b1;
                         current_state <= (r_i_rx_serial_dat == `STOP_BIT) ? DATA_OK : IDLE;
                     end
                 end
                 DATA_OK : begin
                     current_state <= IDLE;
-                    // r_rx_d        <= 1'b0; // reset for new idle state TODO: it is always zero somehow !!!
+                    r_rx_d        <= 1'b0; // reset for new idle state TODO: it is always zero somehow !!!
                 end
                 default : current_state <= IDLE;
             endcase
