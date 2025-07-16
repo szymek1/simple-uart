@@ -36,6 +36,7 @@
 `include "../include/uart_params.vh"
 
 
+// TODO: add convenient way of displaying received data
 module uart_top(
     // Inputs:
     // general
